@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kate Arnold Wines">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1c0e0a">
+<title>Kate Arnold Wines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ── RESET & ROOT ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #1c0e0a;
+  --bg2: #2a1510;
+  --cream: #f3ede0;
+  --ivory: #faf7f1;
+  --gold: #c8a97a;
+  --gold-light: #e2c99c;
+  --wine: #7a2035;
+  --wine-dark: #4a1020;
+  --slate: #4a4040;
+  --mid: #7a6a60;
+  --border: #e0d8cc;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: 'Raleway', sans-serif; color: var(--cream); -webkit-font-smoothing: antialiased; }
+
+/* ── AGE GATE ── */
+#age-gate {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0; padding: 40px 30px;
+  text-align: center;
+}
+#age-gate .ag-logo { width: 200px; margin-bottom: 28px; filter: brightness(1.2); }
+#age-gate h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: var(--cream); letter-spacing: 1px; margin-bottom: 8px; }
+#age-gate p { font-size: 12px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 36px; font-weight: 300; }
+.ag-btns { display: flex; gap: 12px; }
+.ag-btn {
+  padding: 14px 32px;
+  border: 1px solid var(--gold);
+  background: none;
+  color: var(--cream);
+  font-family: 'Raleway', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.ag-btn.yes { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+.ag-btn:active { opacity: 0.7; }
+.ag-note { font-size: 10px; color: var(--mid); margin-top: 24px; letter-spacing: 1px; }
+
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0;
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+#splash.out { opacity: 0; pointer-events: none; transform: scale(1.05); }
+.splash-logo-img { width: 220px; animation: fadeUp 1s ease forwards; margin-bottom: 20px; }
+.splash-tagline { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); font-weight: 300; animation: fadeUp 1.2s ease forwards; opacity: 0; animation-delay: 0.4s; animation-fill-mode: forwards; }
+.splash-bar-wrap { width: 140px; height: 1px; background: rgba(200,169,122,0.2); margin-top: 40px; overflow: hidden; }
+.splash-bar { height: 100%; background: var(--gold); animation: barFill 2.2s ease forwards; }
+
+@keyframes barFill { from{width:0} to{width:100%} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* ── APP SHELL ── */
+#app {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; transition: opacity 0.6s ease;
+  background: var(--ivory);
+}
+#app.show { opacity: 1; }
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--bg);
+  padding-top: var(--safe-top);
+  flex-shrink: 0;
+  position: relative; z-index: 50;
+}
+.topbar-inner {
+  height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(200,169,122,0.15);
+}
+.topbar-logo { height: 30px; }
+.topbar-icon { background: none; border: none; cursor: pointer; color: var(--gold); padding: 6px; display: flex; align-items: center; }
+.topbar-icon svg { width: 20px; height: 20px; }
+
+/* ── PAGES ── */
+.pages { flex: 1; overflow: hidden; position: relative; }
+.page {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: var(--ivory);
+}
+.page.active { opacity: 1; pointer-events: all; }
+.page::-webkit-scrollbar { display: none; }
+.page { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── BOTTOM NAV ── */
+.bottomnav {
+  background: var(--bg);
+  border-top: 1px solid rgba(200,169,122,0.2);
+  display: flex;
+  padding-bottom: var(--safe-bot);
+  flex-shrink: 0;
+}
+.bnav-btn {
+  flex: 1; background: none; border: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 10px 4px;
+  cursor: pointer; color: rgba(200,169,122,0.35);
+  transition: color 0.2s;
+}
+.bnav-btn.active { color: var(--gold); }
+.bnav-btn svg { width: 21px; height: 21px; }
+.bnav-btn span { font-size: 8.5px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 400; }
+
+/* ══════════════════════════════
+   HOME PAGE
+══════════════════════════════ */
+.hero-scroll-wrap {
+  position: relative;
+  height: 65vw; max-height: 380px; min-height: 260px;
+  overflow: hidden;
+}
+.hero-slides {
+  display: flex; height: 100%;
+  transition: transform 0.6s cubic-bezier(0.25,0.1,0.25,1);
+}
+.hero-slide {
+  min-width: 100%; height: 100%;
+  position: relative; overflow: hidden;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transform: scale(1.08);
+  transition: transform 8s ease;
+}
+.hero-slide.active { transform: scale(1); }
+.hero-slide img { display: none; }
+.hero-slide-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(28,14,10,0.1) 0%, rgba(28,14,10,0.55) 100%);
+}
+.hero-slide-caption {
+  position: absolute; bottom: 18px; left: 20px; right: 20px;
+}
+.hero-caption-label {
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold-light); font-weight: 300; margin-bottom: 4px;
+}
+.hero-caption-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: var(--cream);
+  letter-spacing: 1px; line-height: 1.2;
+}
+.hero-caption-title em { font-style: italic; color: var(--gold); }
+.hero-dots {
+  position: absolute; bottom: 10px; right: 14px;
+  display: flex; gap: 5px;
+}
+.hero-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(200,169,122,0.35); border: none; padding: 0; cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.hero-dot.active { background: var(--gold); transform: scale(1.2); }
+
+/* Home scroll wine row */
+.section-header {
+  padding: 20px 18px 10px;
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 400; color: var(--wine-dark);
+  letter-spacing: 0.5px;
+}
+.section-title em { font-style: italic; color: var(--wine); }
+.section-link {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); background: none; border: none; cursor: pointer;
+  font-family: 'Raleway', sans-serif; font-weight: 400;
+}
+
+/* Horizontal scroll wine cards */
+.h-scroll-wrap {
+  padding: 0 18px 4px;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  display: flex; gap: 12px;
+  scrollbar-width: none;
+}
+.h-scroll-wrap::-webkit-scrollbar { display: none; }
+.wine-thumb {
+  flex-shrink: 0; width: 140px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.wine-thumb:active { transform: scale(0.96); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.wine-thumb-img {
+  width: 100%; height: 170px;
+  object-fit: contain;
+  background: var(--ivory);
+  display: block;
+}
+.wine-thumb-body { padding: 10px; }
+.wine-thumb-region {
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); font-weight: 400; margin-bottom: 3px;
+}
+.wine-thumb-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; font-weight: 500; color: var(--wine-dark);
+  line-height: 1.2;
+}
+
+/* Home stat bar */
+.stat-bar {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  margin: 20px 18px; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.stat-item {
+  background: white; padding: 14px 10px; text-align: center;
+}
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: var(--wine);
+  line-height: 1;
+}
+.stat-label { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-top: 4px; }
+
+/* Home quote */
+.home-quote-wrap {
+  margin: 4px 18px 20px;
+  padding: 22px 22px 18px;
+  background: var(--bg);
+  border-radius: 10px;
+  position: relative; overflow: hidden;
+}
+.home-quote-wrap::before {
+  content: '"'; font-family: 'Cormorant Garamond', serif;
+  font-size: 100px; color: var(--gold); opacity: 0.12;
+  position: absolute; top: -18px; left: 10px; line-height: 1;
+}
+.home-quote-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px; font-weight: 300; font-style: italic;
+  color: var(--cream); line-height: 1.8; position: relative; z-index: 1;
+}
+.home-quote-attr {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); margin-top: 12px; font-style: normal;
+}
+
+/* Home quick links */
+.quick-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 0 18px 24px;
+}
+.quick-item {
+  background: white; border-radius: 10px; padding: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  cursor: pointer; transition: transform 0.15s;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.quick-item:active { transform: scale(0.97); }
+.quick-item .qi-icon { font-size: 26px; }
+.quick-item .qi-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-weight: 500; color: var(--wine-dark);
+}
+.quick-item .qi-sub { font-size: 10px; color: var(--mid); font-weight: 300; line-height: 1.4; }
+
+/* ══════════════════════════════
+   WINES PAGE
+══════════════════════════════ */
+.wines-page-header {
+  background: var(--bg);
+  padding: 22px 18px 18px;
+  position: relative; overflow: hidden;
+}
+.wines-page-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+  opacity: 0.4;
+}
+.wines-page-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 300; color: var(--cream); letter-spacing: 1px;
+}
+.wines-page-header h1 em { font-style: italic; color: var(--gold); }
+.wines-page-header p { font-size: 11px; color: rgba(200,169,122,0.7); margin-top: 6px; letter-spacing: 0.5px; font-weight: 300; }
+
+/* Region filter tabs */
+.region-tabs {
+  display: flex; gap: 6px;
+  padding: 12px 18px 0;
+  background: var(--ivory);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.region-tabs::-webkit-scrollbar { display: none; }
+.rtab {
+  padding: 7px 14px; border-radius: 6px 6px 0 0;
+  border: 1px solid var(--border); border-bottom: none;
+  background: none; font-family: 'Raleway', sans-serif;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--mid); cursor: pointer; white-space: nowrap;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.rtab.active {
+  background: var(--bg); color: var(--gold);
+  border-color: var(--bg);
+}
+
+/* Wine detail cards */
+.wine-list { padding: 14px 18px; }
+.wine-card {
+  background: white; border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.wine-card-hero {
+  display: flex; align-items: stretch;
+  background: var(--ivory); min-height: 150px;
+}
+.wine-card-bottle {
+  width: 110px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px 8px;
+  background: linear-gradient(160deg, var(--ivory) 0%, #ede7dc 100%);
+}
+.wine-card-bottle img {
+  width: 90px; height: 130px; object-fit: contain;
+  display: block;
+}
+.wine-card-info {
+  flex: 1; padding: 14px 14px 14px 8px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.wine-card-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 6px;
+}
+.badge-red { background: rgba(122,32,53,0.1); color: var(--wine); }
+.badge-white { background: rgba(200,169,122,0.2); color: #8a6a3a; }
+.wine-card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px; font-weight: 500; color: var(--wine-dark); line-height: 1.2; letter-spacing: 0.3px;
+}
+.wine-card-region { font-size: 10px; color: var(--mid); margin-top: 4px; letter-spacing: 0.5px; font-weight: 300; }
+.wine-card-points {
+  margin-top: 8px;
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.points-badge {
+  background: var(--bg); color: var(--gold);
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 10px; letter-spacing: 0.5px; font-weight: 300;
+}
+
+/* Wine expand tasting notes */
+.wine-expand-btn {
+  width: 100%; background: none; border: none; border-top: 1px solid var(--border);
+  padding: 11px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; font-family: 'Raleway', sans-serif;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--wine); font-weight: 400;
+}
+.wine-expand-btn svg { width: 14px; height: 14px; transition: transform 0.25s; color: var(--gold); }
+.wine-expand-btn.open svg { transform: rotate(180deg); }
+
+.wine-tasting-notes {
+  display: none; padding: 14px 16px;
+  background: #fcf9f5;
+  border-top: 1px solid var(--border);
+}
+.wine-tasting-notes.open { display: block; }
+.tn-row {
+  display: flex; gap: 10px; margin-bottom: 10px;
+  align-items: flex-start;
+}
+.tn-row:last-child { margin-bottom: 0; }
+.tn-key {
+  min-width: 58px; font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold); font-weight: 500; padding-top: 2px;
+}
+.tn-val { font-size: 12px; color: var(--slate); line-height: 1.6; font-weight: 300; }
+
+/* Label scroll strip inside wine card */
+.wine-label-strip {
+  padding: 10px 0 10px 12px;
+  display: none; overflow-x: auto; gap: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-top: 1px solid var(--border);
+  background: white;
+}
+.wine-label-strip::-webkit-scrollbar { display: none; }
+.wine-label-strip.open { display: flex; }
+.wine-label-img {
+  height: 120px; width: auto; border-radius: 6px;
+  object-fit: contain; flex-shrink: 0;
+  background: var(--ivory); border: 1px solid var(--border);
+}
+
+/* ══════════════════════════════
+   GALLERY PAGE (photo scroll)
+══════════════════════════════ */
+.gallery-header {
+  background: var(--bg);
+  padding: 22px 18px 18px;
+}
+.gallery-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 300; color: var(--cream);
+}
+.gallery-header h1 em { font-style: italic; color: var(--gold); }
+.gallery-header p { font-size: 11px; color: rgba(200,169,122,0.7); margin-top: 6px; font-weight: 300; }
+
+.gallery-feature {
+  width: 100%; aspect-ratio: 4/3;
+  overflow: hidden; position: relative;
+}
+.gallery-feature img {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+}
+.gallery-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px; padding: 2px;
+}
+.gallery-grid-item {
+  aspect-ratio: 1; overflow: hidden; position: relative; cursor: pointer;
+}
+.gallery-grid-item img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.4s ease;
+}
+.gallery-grid-item:active img { transform: scale(1.05); }
+.gallery-grid-item.wide { grid-column: span 2; aspect-ratio: 2/1; }
+.gallery-grid-item.tall { grid-row: span 2; aspect-ratio: 1/2; }
+
+/* Image lightbox */
+.lightbox {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.92);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 4px; }
+.lightbox-close {
+  position: absolute; top: calc(var(--safe-top) + 14px); right: 18px;
+  background: rgba(255,255,255,0.1); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%; font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.lightbox-caption {
+  margin-top: 14px; font-size: 12px; color: rgba(255,255,255,0.6);
+  letter-spacing: 1px; text-align: center;
+}
+
+/* ══════════════════════════════
+   ABOUT PAGE
+══════════════════════════════ */
+.about-hero {
+  width: 100%; height: 240px; overflow: hidden; position: relative;
+}
+.about-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+.about-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(28,14,10,0) 30%, rgba(28,14,10,0.7) 100%);
+}
+.about-hero-text {
+  position: absolute; bottom: 18px; left: 18px; right: 18px;
+}
+.about-hero-text h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: white; letter-spacing: 1px;
+}
+.about-hero-text h1 em { font-style: italic; color: var(--gold); }
+.about-hero-text p { font-size: 11px; color: var(--gold-light); margin-top: 4px; letter-spacing: 0.5px; }
+
+.about-section {
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.about-section:last-child { border-bottom: none; }
+.about-section h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 500; color: var(--wine-dark); margin-bottom: 12px;
+}
+.about-section h2 em { font-style: italic; color: var(--wine); }
+.about-section p {
+  font-size: 13px; color: var(--slate); line-height: 1.8; font-weight: 300;
+  margin-bottom: 10px;
+}
+.about-section p:last-child { margin-bottom: 0; }
+.about-blockquote {
+  margin: 14px 0; padding: 16px 18px;
+  background: var(--bg); border-radius: 8px;
+  border-left: 2px solid var(--gold);
+}
+.about-blockquote p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-style: italic; color: var(--cream); margin: 0; line-height: 1.7;
+}
+.about-blockquote cite {
+  display: block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); margin-top: 8px; font-style: normal;
+}
+
+.about-photo-row {
+  display: flex; gap: 8px; margin: 14px 0; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 4px;
+}
+.about-photo-row::-webkit-scrollbar { display: none; }
+.about-photo-row img {
+  height: 160px; width: auto; flex-shrink: 0;
+  border-radius: 8px; object-fit: cover; min-width: 120px;
+}
+
+.about-pillars {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-top: 14px;
+}
+.pillar {
+  background: white; border-radius: 8px; padding: 14px 12px;
+  text-align: center; border: 1px solid var(--border);
+}
+.pillar-icon { font-size: 22px; margin-bottom: 5px; }
+.pillar-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px; color: var(--wine-dark); font-weight: 500;
+}
+
+/* ══════════════════════════════
+   FIND PAGE
+══════════════════════════════ */
+.find-page-header {
+  background: var(--bg); padding: 22px 18px 18px;
+}
+.find-page-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 300; color: var(--cream);
+}
+.find-page-header h1 em { font-style: italic; color: var(--gold); }
+.find-page-header p { font-size: 11px; color: rgba(200,169,122,0.7); margin-top: 6px; font-weight: 300; }
+
+.find-hero-img {
+  width: 100%; height: 180px; overflow: hidden; position: relative;
+}
+.find-hero-img img { width: 100%; height: 100%; object-fit: cover; object-position: center 60%; display: block; }
+.find-hero-img-overlay {
+  position: absolute; inset: 0;
+  background: rgba(28,14,10,0.4);
+  display: flex; align-items: center; justify-content: center;
+}
+.find-cta-btn {
+  padding: 12px 28px; background: var(--gold);
+  color: var(--bg); font-family: 'Raleway', sans-serif;
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  border: none; cursor: pointer; font-weight: 400;
+  text-decoration: none; display: inline-block;
+}
+
+.find-options { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.find-opt {
+  background: white; border-radius: 10px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid var(--border);
+  text-decoration: none; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  transition: transform 0.15s;
+}
+.find-opt:active { transform: scale(0.98); }
+.find-opt-icon { font-size: 28px; flex-shrink: 0; }
+.find-opt-body { flex: 1; }
+.find-opt-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; color: var(--wine-dark); font-weight: 500; display: block;
+}
+.find-opt-sub { font-size: 11px; color: var(--mid); display: block; margin-top: 2px; font-weight: 300; }
+.find-opt-arrow { color: var(--gold); font-size: 20px; flex-shrink: 0; }
+
+/* ── WINE DETAIL MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(28,14,10,0.7); backdrop-filter: blur(4px);
+  display: none; align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  width: 100%; background: white;
+  border-radius: 18px 18px 0 0;
+  max-height: 90vh; overflow-y: auto;
+  padding-bottom: var(--safe-bot);
+  animation: slideUp 0.35s cubic-bezier(0.25,0.1,0.25,1);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 12px auto 0;
+}
+.modal-content { padding: 16px 18px 24px; }
+.modal-close {
+  position: absolute; top: 12px; right: 16px;
+  background: var(--border); border: none; border-radius: 50%;
+  width: 30px; height: 30px; cursor: pointer; font-size: 16px; color: var(--mid);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-bottle-hero {
+  text-align: center; padding: 20px 0 10px;
+  background: var(--ivory); border-radius: 10px; margin-bottom: 14px;
+}
+.modal-bottle-img { height: 220px; object-fit: contain; }
+.modal-wine-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; font-weight: 500; color: var(--wine-dark); margin-bottom: 4px;
+}
+.modal-wine-region { font-size: 11px; color: var(--mid); letter-spacing: 1px; margin-bottom: 14px; }
+.modal-section-title {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin: 14px 0 8px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.modal-tn-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.modal-tn-key { min-width: 58px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); font-weight: 500; padding-top: 2px; }
+.modal-tn-val { font-size: 13px; color: var(--slate); line-height: 1.6; font-weight: 300; }
+.modal-accolade {
+  background: var(--bg); border-radius: 6px; padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.modal-accolade-pts {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 300; color: var(--gold); min-width: 40px;
+}
+.modal-accolade-pub { font-size: 11px; color: rgba(243,237,224,0.7); font-style: italic; font-weight: 300; }
+.modal-label-scroll {
+  display: flex; gap: 8px; overflow-x: auto; margin-top: 8px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.modal-label-scroll::-webkit-scrollbar { display: none; }
+.modal-label-img {
+  height: 140px; width: auto; flex-shrink: 0; border-radius: 6px;
+  object-fit: contain; background: var(--ivory); border: 1px solid var(--border);
+}
+.modal-shop-btn {
+  display: block; width: 100%; margin-top: 16px;
+  background: var(--wine); color: white; border: none;
+  padding: 14px; text-align: center;
+  font-family: 'Raleway', sans-serif; font-size: 11px;
+  letter-spacing: 3px; text-transform: uppercase;
+  border-radius: 8px; cursor: pointer; text-decoration: none;
+  font-weight: 400;
+}
+
+/* ── PAGE SECTION BOTTOMS ── */
+.section-pad { height: 20px; }
+</style>
+</head>
+<body>
+
+<!-- AGE GATE -->
+<div id="age-gate">
+  <img class="ag-logo" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1607706305512-24ZYWDC7JWCE3TWF8PBY/new+logo+for+site+copy.png" alt="Kate Arnold Wines" onerror="this.style.display='none'">
+  <h2>Welcome to Kate Arnold Wines</h2>
+  <p>You must be 21 or older to enter</p>
+  <div class="ag-btns">
+    <button class="ag-btn yes" onclick="enterApp()">Yes, I'm 21+</button>
+    <button class="ag-btn" onclick="document.getElementById('age-gate').innerHTML='<p style=\'color:var(--mid);font-size:13px;text-align:center;padding:40px\'>You must be 21 or older to enter this site.</p>'">No</button>
+  </div>
+  <div class="ag-note">Must be 21 or older to view this website. © 2025 Family & Farmers, LLC</div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash" style="display:none">
+  <img class="splash-logo-img" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1607706305512-24ZYWDC7JWCE3TWF8PBY/new+logo+for+site+copy.png" alt="Kate Arnold Wines" onerror="this.style.display='none'">
+  <div class="splash-tagline">Oregon · Washington · California</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-caption" id="lightbox-cap"></div>
+</div>
+
+<!-- WINE MODAL -->
+<div class="modal-overlay" id="wine-modal" onclick="closeModal(event)">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-content" id="modal-content"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div style="width:32px"></div>
+      <img class="topbar-logo" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1607706305512-24ZYWDC7JWCE3TWF8PBY/new+logo+for+site+copy.png" alt="Kate Arnold Wines" onerror="this.style.color='white';this.outerHTML='<span style=\'font-family:Cormorant Garamond,serif;font-size:16px;color:#f3ede0;letter-spacing:2px\'>Kate Arnold Wines</span>'">
+      <button class="topbar-icon" onclick="window.open('https://www.instagram.com/katearnoldwines','_blank')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- ═══ HOME ═══ -->
+    <div class="page active" id="page-home">
+      <!-- Hero photo scroll -->
+      <div class="hero-scroll-wrap">
+        <div class="hero-slides" id="hero-slides">
+          <div class="hero-slide active" data-idx="0" style="background-image:url('https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1750948282276-32TW9JQPW18HJTL6FOHN/IMG_3655.jpg')">
+            <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1750948282276-32TW9JQPW18HJTL6FOHN/IMG_3655.jpg" alt="Kate Arnold Wines" loading="eager">
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-caption">
+              <div class="hero-caption-label">Family-Owned Winery</div>
+              <div class="hero-caption-title">Wine crafted to be <em>shared.</em></div>
+            </div>
+          </div>
+          <div class="hero-slide" data-idx="1" style="background-image:url('https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/a7986c68-ed95-4ddb-b0b7-2417f7447727/About+page+pic+resize+%2811%29.png')">
+            <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/a7986c68-ed95-4ddb-b0b7-2417f7447727/About+page+pic+resize+%2811%29.png" alt="About Kate Arnold Wines" loading="lazy">
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-caption">
+              <div class="hero-caption-label">Our Story</div>
+              <div class="hero-caption-title">Founded by <em>Kate & Jean</em> Arnold</div>
+            </div>
+          </div>
+          <div class="hero-slide" data-idx="2" style="background-image:url('https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/41264873-b8e5-4f29-9184-2caa77f60cc2/About+page+pic+resize+%289%29.png')">
+            <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/41264873-b8e5-4f29-9184-2caa77f60cc2/About+page+pic+resize+%289%29.png" alt="Vineyards" loading="lazy">
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-caption">
+              <div class="hero-caption-label">Vineyard Sourced</div>
+              <div class="hero-caption-title">Minimal <em>intervention</em> winemaking</div>
+            </div>
+          </div>
+          <div class="hero-slide" data-idx="3" style="background-image:url('https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/8d938a00-1300-4bce-a7ab-72a8e9499375/About+page+pic+resize+%2817%29.png')">
+            <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/8d938a00-1300-4bce-a7ab-72a8e9499375/About+page+pic+resize+%2817%29.png" alt="Quality" loading="lazy">
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-caption">
+              <div class="hero-caption-label">Quality & Transparency</div>
+              <div class="hero-caption-title">No added <em>sugar</em> or concentrates</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-dots" id="hero-dots">
+          <button class="hero-dot active" onclick="goSlide(0)"></button>
+          <button class="hero-dot" onclick="goSlide(1)"></button>
+          <button class="hero-dot" onclick="goSlide(2)"></button>
+          <button class="hero-dot" onclick="goSlide(3)"></button>
+        </div>
+      </div>
+
+      <!-- Wine horizontal scroll -->
+      <div class="section-header">
+        <div class="section-title">Our <em>Wines</em></div>
+        <button class="section-link" onclick="goTo('wines')">View All →</button>
+      </div>
+      <div class="h-scroll-wrap" id="home-wines-scroll"></div>
+
+      <!-- Stats -->
+      <div class="stat-bar">
+        <div class="stat-item">
+          <div class="stat-num">11</div>
+          <div class="stat-label">Wines</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3</div>
+          <div class="stat-label">States</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">92<span style="font-size:16px">pt</span></div>
+          <div class="stat-label">Top Rating</div>
+        </div>
+      </div>
+
+      <!-- Quote -->
+      <div class="home-quote-wrap">
+        <p class="home-quote-text">"When Kate and I first started Kate Arnold Wines, we had one primary goal: Support the consumer by producing wines not only we were proud to make but wines our consumer friends were proud to purchase."</p>
+        <div class="home-quote-attr">— Jean Arnold, Co-Owner</div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="section-header" style="padding-top:4px">
+        <div class="section-title">Explore</div>
+      </div>
+      <div class="quick-grid">
+        <div class="quick-item" onclick="goTo('gallery')">
+          <div class="qi-icon">📸</div>
+          <div class="qi-title">Gallery</div>
+          <div class="qi-sub">Photos from the vineyard & cellar</div>
+        </div>
+        <div class="quick-item" onclick="goTo('find')">
+          <div class="qi-icon">📍</div>
+          <div class="qi-title">Find Our Wines</div>
+          <div class="qi-sub">Retailers, restaurants & online</div>
+        </div>
+        <div class="quick-item" onclick="goTo('about')">
+          <div class="qi-icon">👨‍👩‍👧</div>
+          <div class="qi-title">Our Story</div>
+          <div class="qi-sub">Meet Kate & Jean Arnold</div>
+        </div>
+        <div class="quick-item" onclick="window.open('https://www.katewines.com/shop','_blank')">
+          <div class="qi-icon">🛒</div>
+          <div class="qi-title">Shop Online</div>
+          <div class="qi-sub">Direct delivery, most states</div>
+        </div>
+      </div>
+      <div class="section-pad"></div>
+    </div>
+
+    <!-- ═══ WINES ═══ -->
+    <div class="page" id="page-wines">
+      <div class="wines-page-header">
+        <h1>Our <em>Wines</em></h1>
+        <p>Sourced from family-owned farms · No added sugar · Minimal intervention</p>
+      </div>
+      <div class="region-tabs">
+        <button class="rtab active" onclick="filterWines('all',this)">All</button>
+        <button class="rtab" onclick="filterWines('ca',this)">California</button>
+        <button class="rtab" onclick="filterWines('or',this)">Oregon</button>
+        <button class="rtab" onclick="filterWines('wa',this)">Washington</button>
+      </div>
+      <div class="wine-list" id="wine-list"></div>
+    </div>
+
+    <!-- ═══ GALLERY ═══ -->
+    <div class="page" id="page-gallery">
+      <div class="gallery-header">
+        <h1>Photo <em>Gallery</em></h1>
+        <p>From vineyard to glass — the Kate Arnold Wines story</p>
+      </div>
+      <!-- Feature photo -->
+      <div class="gallery-feature">
+        <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/1750948282276-32TW9JQPW18HJTL6FOHN/IMG_3655.jpg" alt="Kate Arnold Wines Feature" loading="lazy" onclick="openLightbox(this.src,'Kate Arnold Wines')">
+      </div>
+      <!-- Photo grid -->
+      <div class="gallery-grid">
+        <div class="gallery-grid-item wide">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/a7986c68-ed95-4ddb-b0b7-2417f7447727/About+page+pic+resize+%2811%29.png" alt="Kate Arnold Winery" loading="lazy" onclick="openLightbox(this.src,'Kate Arnold Winery')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/41264873-b8e5-4f29-9184-2caa77f60cc2/About+page+pic+resize+%289%29.png" alt="Vineyard" loading="lazy" onclick="openLightbox(this.src,'Vineyard')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/8d938a00-1300-4bce-a7ab-72a8e9499375/About+page+pic+resize+%2817%29.png" alt="Quality & Transparency" loading="lazy" onclick="openLightbox(this.src,'Quality & Transparency')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/7cf17e9d-4c29-4cd6-b1d2-ceaccdef6704/About+page+pic+resize+%284%29.png" alt="Winemaking" loading="lazy" onclick="openLightbox(this.src,'Winemaking')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/29ca98cd-6b30-4039-9248-a2fc6eb5e9d5/About+page+pic+resize+%286%29.png" alt="Relationships" loading="lazy" onclick="openLightbox(this.src,'Relationships')">
+        </div>
+        <!-- Bottle shots grid -->
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png" alt="Wine Collection" loading="lazy" onclick="openLightbox(this.src,'Wine Bottle Collection')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/6fe91a00-0c7f-4127-8f33-e5a154bd405d/22ORPN%2C+23ORPN%2C+24NCSB.png" alt="Oregon Pinot & Sauvignon Blanc" loading="lazy" onclick="openLightbox(this.src,'Oregon Pinot Noir & Sauvignon Blanc')">
+        </div>
+        <div class="gallery-grid-item wide">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/259a5f69-9bff-4f75-af9b-58023d7a32da/23KANCSB.png" alt="North Coast Sauvignon Blanc" loading="lazy" onclick="openLightbox(this.src,'North Coast Sauvignon Blanc')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg" alt="Oregon Pinot Noir 2022" loading="lazy" onclick="openLightbox(this.src,'Oregon Pinot Noir 2022')">
+        </div>
+        <div class="gallery-grid-item">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/4fa47317-2f2b-4c3b-8f1c-f6cfed9f6f5b/21KACVCF.png" alt="Cabernet Franc 2021" loading="lazy" onclick="openLightbox(this.src,'Columbia Valley Cabernet Franc 2021')">
+        </div>
+      </div>
+
+      <!-- Section: Bottle shots scroll -->
+      <div class="section-header" style="margin-top:8px">
+        <div class="section-title">Bottle <em>Shots</em></div>
+      </div>
+      <div class="h-scroll-wrap" style="padding:0 18px 20px">
+        <img style="height:200px;width:auto;border-radius:8px;object-fit:contain;background:#faf7f1;border:1px solid var(--border);cursor:pointer;flex-shrink:0" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png" loading="lazy" onclick="openLightbox(this.src,'Wine Collection')" alt="Wine Collection">
+        <img style="height:200px;width:auto;border-radius:8px;object-fit:contain;background:#faf7f1;border:1px solid var(--border);cursor:pointer;flex-shrink:0" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/259a5f69-9bff-4f75-af9b-58023d7a32da/23KANCSB.png" loading="lazy" onclick="openLightbox(this.src,'North Coast Sauvignon Blanc 2023')" alt="NCSauvBlanc">
+        <img style="height:200px;width:auto;border-radius:8px;object-fit:contain;background:#faf7f1;border:1px solid var(--border);cursor:pointer;flex-shrink:0" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg" loading="lazy" onclick="openLightbox(this.src,'Oregon Pinot Noir 2022')" alt="OR Pinot">
+        <img style="height:200px;width:auto;border-radius:8px;object-fit:contain;background:#faf7f1;border:1px solid var(--border);cursor:pointer;flex-shrink:0" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/4fa47317-2f2b-4c3b-8f1c-f6cfed9f6f5b/21KACVCF.png" loading="lazy" onclick="openLightbox(this.src,'Columbia Valley Cabernet Franc 2021')" alt="CabFranc">
+        <img style="height:200px;width:auto;border-radius:8px;object-fit:contain;background:#faf7f1;border:1px solid var(--border);cursor:pointer;flex-shrink:0" src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/6fe91a00-0c7f-4127-8f33-e5a154bd405d/22ORPN%2C+23ORPN%2C+24NCSB.png" loading="lazy" onclick="openLightbox(this.src,'Oregon Collection')" alt="OR Collection">
+      </div>
+
+      <div class="section-pad"></div>
+    </div>
+
+    <!-- ═══ ABOUT ═══ -->
+    <div class="page" id="page-about">
+      <div class="about-hero">
+        <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/a7986c68-ed95-4ddb-b0b7-2417f7447727/About+page+pic+resize+%2811%29.png" alt="Kate Arnold Wines">
+        <div class="about-hero-overlay"></div>
+        <div class="about-hero-text">
+          <h1>About <em>Kate Arnold</em></h1>
+          <p>Family · Farmers · Winemakers</p>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h2>Welcome to <em>Kate Arnold Wines</em></h2>
+        <p>Founded by Kate and Jean Arnold, our family-owned wine company is driven by a deep love for wine, an unwavering commitment to exceptional quality, and a genuine appreciation for the growers and distributors who make it all possible.</p>
+        <div class="about-blockquote">
+          <p>"When Kate and I first started Kate Arnold Wines, we had one primary goal: Support the consumer by producing wines not only we were proud to make but wines our consumer friends were proud to purchase."</p>
+          <cite>— Jean Arnold, Co-Owner of Kate Arnold Wines</cite>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h2>About the <em>Owners</em></h2>
+        <div class="about-photo-row">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/41264873-b8e5-4f29-9184-2caa77f60cc2/About+page+pic+resize+%289%29.png" alt="Kate & Jean Arnold" loading="lazy">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/8d938a00-1300-4bce-a7ab-72a8e9499375/About+page+pic+resize+%2817%29.png" alt="Winemaking" loading="lazy">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/29ca98cd-6b30-4039-9248-a2fc6eb5e9d5/About+page+pic+resize+%286%29.png" alt="Relationships" loading="lazy">
+        </div>
+        <p>Kate Arnold was raised to appreciate the outdoors and learned from an early age the importance of animals and agriculture. Jean Arnold developed a passion for wine working for E&J Gallo Wines, managing sales across the Carolinas, Virginias, Sweden, Iceland, Norway, Finland, and Germany — before joining Don Sebastiani & Sons and ultimately founding Kate Arnold Wines.</p>
+        <p>Kate's marketing expertise and Jean's sales and distribution experience was the flame that ignited Kate Arnold Wines. Today, all three family members work collaboratively, with their daughter Leila also playing a significant role.</p>
+      </div>
+
+      <div class="about-section">
+        <h2>Quality & <em>Transparency</em></h2>
+        <div class="about-photo-row">
+          <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/7cf17e9d-4c29-4cd6-b1d2-ceaccdef6704/About+page+pic+resize+%284%29.png" alt="Quality" loading="lazy">
+        </div>
+        <p>We always say we produce wine, not wine product. Wine is a reflection of the vineyard, not of the winemaking. We eschew intrusive techniques and additives — no adjuncts, concentrates, or added sugars find their way into our wines.</p>
+        <div class="about-pillars">
+          <div class="pillar"><div class="pillar-icon">🚫</div><div class="pillar-label">No Added Sugar</div></div>
+          <div class="pillar"><div class="pillar-icon">🌿</div><div class="pillar-label">Minimal Intervention</div></div>
+          <div class="pillar"><div class="pillar-icon">🤝</div><div class="pillar-label">Grower Partnerships</div></div>
+          <div class="pillar"><div class="pillar-icon">🔍</div><div class="pillar-label">Full Transparency</div></div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h2>Where We <em>Source</em></h2>
+        <p>We carefully source grapes from exceptional vineyards in California, Oregon, and Washington — selecting the best growing areas for each varietal. Every wine reflects the distinct characteristics of its region, from the expressive Sauvignon Blanc of Lake County to the pure fruit of Oregon's Willamette Valley and the robust Cabernet Sauvignon of Washington's Columbia Valley.</p>
+      </div>
+
+      <div class="section-pad"></div>
+    </div>
+
+    <!-- ═══ FIND ═══ -->
+    <div class="page" id="page-find">
+      <div class="find-page-header">
+        <h1>Find Our <em>Wines</em></h1>
+        <p>Shop direct or find us at independent retailers near you</p>
+      </div>
+      <div class="find-hero-img">
+        <img src="https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png" alt="Kate Arnold Wines" loading="lazy">
+        <div class="find-hero-img-overlay">
+          <a class="find-cta-btn" href="https://www.katewines.com/shop" target="_blank">Shop Now</a>
+        </div>
+      </div>
+      <div class="find-options">
+        <a class="find-opt" href="https://www.katewines.com/shop" target="_blank">
+          <div class="find-opt-icon">🛒</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">Shop Online</span>
+            <span class="find-opt-sub">Direct delivery via VinoShipper · Available in most states</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+        <a class="find-opt" href="https://www.katewines.com/find-our-wines" target="_blank">
+          <div class="find-opt-icon">📍</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">Restaurants & Retailers</span>
+            <span class="find-opt-sub">Interactive map — find us near you</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+        <a class="find-opt" href="https://www.katewines.com/wine-club" target="_blank">
+          <div class="find-opt-icon">🍷</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">Wine Club</span>
+            <span class="find-opt-sub">Join for exclusive access & discounts</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+        <a class="find-opt" href="mailto:kate@katewines.com">
+          <div class="find-opt-icon">✉️</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">Contact Kate</span>
+            <span class="find-opt-sub">kate@katewines.com · Questions & trade inquiries</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+        <a class="find-opt" href="mailto:jean@katewines.com">
+          <div class="find-opt-icon">📧</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">Contact Jean</span>
+            <span class="find-opt-sub">jean@katewines.com · Distribution & sales</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+        <a class="find-opt" href="https://www.instagram.com/katearnoldwines" target="_blank">
+          <div class="find-opt-icon">📸</div>
+          <div class="find-opt-body">
+            <span class="find-opt-title">@katearnoldwines</span>
+            <span class="find-opt-sub">Follow us on Instagram</span>
+          </div>
+          <span class="find-opt-arrow">›</span>
+        </a>
+      </div>
+      <div class="section-pad"></div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottomnav">
+    <button class="bnav-btn active" id="bnav-home" onclick="goTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bnav-btn" id="bnav-wines" onclick="goTo('wines')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3h8l1 9a5 5 0 01-10 0L8 3z"/><line x1="7" y1="3" x2="17" y2="3"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+      <span>Wines</span>
+    </button>
+    <button class="bnav-btn" id="bnav-gallery" onclick="goTo('gallery')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Gallery</span>
+    </button>
+    <button class="bnav-btn" id="bnav-about" onclick="goTo('about')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>About</span>
+    </button>
+    <button class="bnav-btn" id="bnav-find" onclick="goTo('find')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Find</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+// ── WINE DATA with real Squarespace images ──
+const WINES = [
+  { id:'ncsb', region:'ca', type:'white', name:'North Coast Sauvignon Blanc', vintage:'2024',
+    sub:'California · North Coast AVA', pts:'92 The Tasting Panel',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/259a5f69-9bff-4f75-af9b-58023d7a32da/23KANCSB.png',
+    rating:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/6fe91a00-0c7f-4127-8f33-e5a154bd405d/22ORPN%2C+23ORPN%2C+24NCSB.png',
+    color:'Light yellow with brilliant transparency',
+    aromas:'Preserved lemon, golden delicious apple, gardenia',
+    flavors:'Lychee, honeydew melon, grapefruit zest',
+    structure:'Fresh, tart, balanced acidity, clean finish',
+    vineyard:'Mauritson, High Chaparral', cases:'3,450',
+    accolades:[{pts:'92',pub:'The Tasting Panel'},{pts:'91',pub:'Wine Enthusiast'}],
+    shop:'https://www.katewines.com/north-coast-sauvignon-blanc' },
+
+  { id:'hcsb', region:'ca', type:'white', name:'High Chaparral Vineyard Sauvignon Blanc', vintage:'2024',
+    sub:'California · Kelsey Bench AVA', pts:'Single Vineyard',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/259a5f69-9bff-4f75-af9b-58023d7a32da/23KANCSB.png',
+    color:'Bright, translucent ivory',
+    aromas:'Lime and citrus with a touch of peach',
+    flavors:'Guava up front with lemongrass and citrus ribbons throughout',
+    structure:'Balanced acidity, juicy, mouth-filling mid-palate, clean finish',
+    vineyard:'Mauritson, Shannon Ridge', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/high-chaparral-vineyard-sauvignon-blanc' },
+
+  { id:'orpn', region:'or', type:'red', name:'Oregon Pinot Noir', vintage:'2023',
+    sub:'Oregon · Willamette Valley', pts:'92 The Tasting Panel',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/54cad7da-c212-47f9-8a03-1097675a61df/Kate+Arnold+Wines+2023+Oregon+Pinot+Noir',
+    rating:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/7dcb8621-1c98-41f4-be34-2a4afae1e674/Kate+Arnold+Wines+2022+Oregon+Pinot+Noir+Rating',
+    color:'Ruby, clear',
+    aromas:'Cherry, graham cracker, white pepper, orange zest, brambleberry',
+    flavors:'Ripe strawberry, rose, cardamom, bergamot, pink peppercorn, white cherry, sumac',
+    structure:'Medium weight with balanced acidity; a clean and light finish',
+    vineyard:'Paradis, Riverside, Bright', cases:'1,124',
+    accolades:[{pts:'92',pub:'The Tasting Panel'},{pts:'89',pub:'Wine Enthusiast'}],
+    shop:'https://www.katewines.com/oregon-pinot-noir' },
+
+  { id:'wvpn', region:'or', type:'red', name:'Willamette Valley Pinot Noir', vintage:'2022',
+    sub:'Oregon · Willamette Valley AVA', pts:'90 The Tasting Panel',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/0149c18f-1cc8-4dfe-8cfb-bddd3f54e73d/Kate+Arnold+Wines+2022+Willamette+Valley+Pinot+Noir',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/286c92cd-ea0b-4173-b2a8-da5d4d37d887/KateArnoldWines2022WillametteValleyPinotNoirRating',
+    color:'Ruby',
+    aromas:'Cranberry, cedar, baking spice, pencil shavings, lilac, red plum, bergamot',
+    flavors:'Raspberry, blackberry, palo santo, red pie cherry, Earl Grey',
+    structure:'Medium weight with balanced acidity; a clean and light finish',
+    vineyard:'Paradis, Bright Vineyard, Riverside, Hirschy + more', cases:'4,088',
+    accolades:[{pts:'94',pub:'The Tasting Panel 2021'},{pts:'90',pub:'Wine Enthusiast'}],
+    shop:'https://www.katewines.com/willamette-valley-pinot-noir' },
+
+  { id:'bvpn', region:'or', type:'red', name:'Bright Vineyard Pinot Noir', vintage:'2022',
+    sub:'Oregon · Chehalem Mountains AVA', pts:'Single Vineyard',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg',
+    color:'Medium ruby',
+    aromas:'Rose petal and oak spice, red plum, cardamom, nutmeg, mint',
+    flavors:'Tart cherry, new strawberry, cinnamon, and clove',
+    structure:'Vein of acidity carries through the full mid-palate to an elegant finish',
+    vineyard:'Bright Vineyard', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/bright-vineyard-pinot-noir' },
+
+  { id:'dhpn', region:'or', type:'red', name:'Daffodil Hill Pinot Noir', vintage:'2022',
+    sub:'Oregon · Eola-Amity Hills AVA', pts:'Single Vineyard',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg',
+    color:'Cherry candy',
+    aromas:'Red plum, leather, pomegranate, hint of salinity',
+    flavors:'Red currant, pomegranate, dried chilis, Aleppo pepper, cranberry',
+    structure:'Bright acidity at the beginning with a round mid-palate',
+    vineyard:'Daffodil Hill Vineyard', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/daffodil-hill-pinot-noir' },
+
+  { id:'pctemp', region:'or', type:'red', name:'Purple Cow Tempranillo', vintage:'2022',
+    sub:'Oregon · Willamette Valley', pts:'',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg',
+    color:'Deep red',
+    aromas:'Ripe red cherry, cassis, licorice, baking spice, menthol',
+    flavors:'Sweet red fruits, strawberry, cherry skin, sweet spice, hints of dark chocolate',
+    structure:'Medium acidity with good texture and great volume; rounded tannins',
+    vineyard:'Four Feathers, Lawrence', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/purple-cow-tempranillo' },
+
+  { id:'gcgamay', region:'or', type:'red', name:'Geary Claim Gamay Noir', vintage:'2022',
+    sub:'Oregon · Willamette Valley', pts:'',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/18c7700f-fe2b-49df-9fdb-10ad31314289/Oregon+Pinot+Noir+2022.jpg',
+    color:'Cherry candy',
+    aromas:'Cooked cherry, cacao, red plum, violet',
+    flavors:'Cranberry, cedar, boysenberry, red currant, black tea',
+    structure:'Lightweight, balanced acidity throughout',
+    vineyard:'Geary Claim', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/geary-claim-vineyard' },
+
+  { id:'cvcs', region:'wa', type:'red', name:'Columbia Valley Cabernet Sauvignon', vintage:'2022',
+    sub:'Washington · Columbia Valley AVA', pts:'92 The Tasting Panel',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/f3948ac1-7076-40f3-b697-24bd760299d8/Kate+Arnold+Wines+2022+Columbia+Valley+Cabernet+Sauvignon',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/d648c9bc-b4b5-4d22-b1ef-de163eb4f4bc/Kate+Arnold+Wines+2022+Columbia+Valley+Cabernet+Sauvignon+Rating',
+    color:'Deep ruby',
+    aromas:'Black cherry, dried fig, violet',
+    flavors:'Cassis, dark chocolate, black pepper',
+    structure:'Consistently round fruit with soft tannins and a lingering finish',
+    vineyard:'Lawrence', cases:'586',
+    accolades:[{pts:'92',pub:'The Tasting Panel'}],
+    shop:'https://www.katewines.com/columbia-valley-cabernet-sauvignon' },
+
+  { id:'cvcf', region:'wa', type:'red', name:'Columbia Valley Cabernet Franc', vintage:'2021',
+    sub:'Washington · Columbia Valley AVA', pts:'91 Wine Enthusiast',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/4fa47317-2f2b-4c3b-8f1c-f6cfed9f6f5b/21KACVCF.png',
+    label:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/044bf7e0-da9b-42d5-b51b-3730a42998b7/Kate+Arnold+Wines+2021+Columbia+Valley+Cabernet+Franc',
+    rating:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/6110ab70-578e-49c4-a302-b3c04e4694da/Kate+Arnold+Wines+2021+Columbia+Valley+Cabernet+Franc+Rating',
+    color:'Dark carmine',
+    aromas:'Dark plum, raspberry molasses, and leather',
+    flavors:'Blackberry, mocha, and citrus peel',
+    structure:'Silky mid-palate with a tannin-structured finish',
+    vineyard:'Lawrence', cases:'574',
+    accolades:[{pts:'91',pub:'Wine Enthusiast'},{pts:'91',pub:'The Tasting Panel'}],
+    shop:'https://www.katewines.com/columbia-valley-cabernet-franc' },
+
+  { id:'cvr', region:'wa', type:'white', name:'Columbia Valley Riesling', vintage:'2022',
+    sub:'Washington · Columbia Valley AVA', pts:'',
+    bottle:'https://images.squarespace-cdn.com/content/v1/5984a2938419c27e05622fa3/9ef6190f-ce0f-40a1-b451-ab32734dcd25/Website+Bottle+Shots+Resize+%28our+wines%29.png',
+    color:'Light golden',
+    aromas:'Peach, apricot, citrus blossom',
+    flavors:'Stone fruit, honey, crisp lime acidity',
+    structure:'Balanced sweetness with refreshing acidity and a clean finish',
+    vineyard:'Columbia Valley', cases:'N/A',
+    accolades:[],
+    shop:'https://www.katewines.com/columbia-valley-riesling' },
+];
+
+// ── HERO SLIDER ──
+let slideIdx = 0;
+let slideTimer;
+
+function goSlide(n) {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot');
+  slides[slideIdx].classList.remove('active');
+  dots[slideIdx].classList.remove('active');
+  slideIdx = n;
+  slides[slideIdx].classList.add('active');
+  dots[slideIdx].classList.add('active');
+  document.getElementById('hero-slides').style.transform = `translateX(-${slideIdx * 100}%)`;
+  resetSlideTimer();
+}
+
+function nextSlide() {
+  goSlide((slideIdx + 1) % document.querySelectorAll('.hero-slide').length);
+}
+
+function resetSlideTimer() {
+  clearInterval(slideTimer);
+  slideTimer = setInterval(nextSlide, 4000);
+}
+
+// Touch swipe on hero
+let touchStartX = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  const hw = document.querySelector('.hero-scroll-wrap');
+  if(hw) {
+    hw.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    hw.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if(Math.abs(dx) > 40) {
+        const total = document.querySelectorAll('.hero-slide').length;
+        goSlide((slideIdx + (dx < 0 ? 1 : -1) + total) % total);
+      }
+    }, { passive: true });
+  }
+  resetSlideTimer();
+});
+
+// ── HOME WINE SCROLL ──
+function buildHomeWines() {
+  const el = document.getElementById('home-wines-scroll');
+  el.innerHTML = WINES.map(w => `
+    <div class="wine-thumb" onclick="openModal('${w.id}')">
+      <img class="wine-thumb-img" src="${w.bottle}" alt="${w.name}" loading="lazy" onerror="this.style.background='#f0e8d8'">
+      <div class="wine-thumb-body">
+        <div class="wine-thumb-region">${w.region === 'ca' ? 'California' : w.region === 'or' ? 'Oregon' : 'Washington'}</div>
+        <div class="wine-thumb-name">${w.name}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── WINE LIST ──
+let activeRegion = 'all';
+
+function buildWineList() {
+  const el = document.getElementById('wine-list');
+  const list = activeRegion === 'all' ? WINES : WINES.filter(w => w.region === activeRegion);
+  el.innerHTML = list.map(w => `
+    <div class="wine-card" id="wcard-${w.id}">
+      <div class="wine-card-hero" onclick="openModal('${w.id}')">
+        <div class="wine-card-bottle">
+          <img src="${w.bottle}" alt="${w.name}" loading="lazy" onerror="this.style.opacity='0.3'">
+        </div>
+        <div class="wine-card-info">
+          <div class="wine-card-badge badge-${w.type}">${w.type === 'white' ? 'White Wine' : 'Red Wine'}</div>
+          <div class="wine-card-name">${w.name}</div>
+          <div class="wine-card-region">${w.vintage} · ${w.sub}</div>
+          ${w.pts ? `<div class="wine-card-points"><span class="points-badge">⭐ ${w.pts}</span></div>` : ''}
+        </div>
+      </div>
+      <button class="wine-expand-btn" id="exp-${w.id}" onclick="toggleNotes('${w.id}')">
+        <span>Tasting Notes</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="wine-tasting-notes" id="notes-${w.id}">
+        <div class="tn-row"><span class="tn-key">Color</span><span class="tn-val">${w.color}</span></div>
+        <div class="tn-row"><span class="tn-key">Aromas</span><span class="tn-val">${w.aromas}</span></div>
+        <div class="tn-row"><span class="tn-key">Flavors</span><span class="tn-val">${w.flavors}</span></div>
+        <div class="tn-row"><span class="tn-key">Structure</span><span class="tn-val">${w.structure}</span></div>
+        <div class="tn-row"><span class="tn-key">Vineyard</span><span class="tn-val">${w.vineyard}</span></div>
+        <div class="tn-row"><span class="tn-key">Cases</span><span class="tn-val">${w.cases}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNotes(id) {
+  document.getElementById('notes-' + id).classList.toggle('open');
+  document.getElementById('exp-' + id).classList.toggle('open');
+}
+
+function filterWines(region, btn) {
+  activeRegion = region;
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  buildWineList();
+}
+
+// ── WINE MODAL ──
+function openModal(id) {
+  const w = WINES.find(x => x.id === id);
+  if (!w) return;
+  const mc = document.getElementById('modal-content');
+  mc.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div>
+        <div class="wine-card-badge badge-${w.type}" style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:8px;letter-spacing:2px;text-transform:uppercase;font-weight:500;${w.type==='white'?'background:rgba(200,169,122,0.2);color:#8a6a3a':'background:rgba(122,32,53,0.1);color:var(--wine)'}">${w.type === 'white' ? 'White Wine' : 'Red Wine'}</div>
+      </div>
+      <button onclick="closeModal2()" style="background:var(--border);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--mid);display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div class="modal-bottle-hero">
+      <img class="modal-bottle-img" src="${w.bottle}" alt="${w.name}" onerror="this.style.opacity='0.3'">
+    </div>
+    <div class="modal-wine-title">${w.name} ${w.vintage}</div>
+    <div class="modal-wine-region">${w.sub}</div>
+    <div class="modal-section-title">Tasting Notes</div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Color</span><span class="modal-tn-val">${w.color}</span></div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Aromas</span><span class="modal-tn-val">${w.aromas}</span></div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Flavors</span><span class="modal-tn-val">${w.flavors}</span></div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Structure</span><span class="modal-tn-val">${w.structure}</span></div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Vineyard</span><span class="modal-tn-val">${w.vineyard}</span></div>
+    <div class="modal-tn-row"><span class="modal-tn-key">Cases</span><span class="modal-tn-val">${w.cases}</span></div>
+    ${w.accolades && w.accolades.length ? `
+      <div class="modal-section-title">Accolades</div>
+      ${w.accolades.map(a => `<div class="modal-accolade"><div class="modal-accolade-pts">${a.pts}</div><div class="modal-accolade-pub">Points · ${a.pub}</div></div>`).join('')}
+    ` : ''}
+    ${w.label ? `
+      <div class="modal-section-title">Label & Media</div>
+      <div class="modal-label-scroll">
+        <img class="modal-label-img" src="${w.label}" alt="Label" onclick="openLightbox('${w.label}','${w.name} Label')" onerror="this.style.display='none'">
+        ${w.rating ? `<img class="modal-label-img" src="${w.rating}" alt="Rating" onclick="openLightbox('${w.rating}','${w.name} Rating')" onerror="this.style.display='none'">` : ''}
+        <img class="modal-label-img" src="${w.bottle}" alt="Bottle" onclick="openLightbox('${w.bottle}','${w.name} Bottle Shot')" onerror="this.style.display='none'">
+      </div>
+    ` : ''}
+    <a class="modal-shop-btn" href="${w.shop}" target="_blank">Learn More at katewines.com</a>
+  `;
+  document.getElementById('wine-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('wine-modal')) closeModal2();
+}
+function closeModal2() {
+  document.getElementById('wine-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── LIGHTBOX ──
+function openLightbox(src, cap) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-cap').textContent = cap || '';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// ── NAV ──
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('bnav-' + page);
+  if(nb) nb.classList.add('active');
+}
+
+// ── AGE GATE → SPLASH → APP ──
+function enterApp() {
+  document.getElementById('age-gate').style.display = 'none';
+  const splash = document.getElementById('splash');
+  splash.style.display = 'flex';
+  setTimeout(() => {
+    splash.classList.add('out');
+    document.getElementById('app').classList.add('show');
+    setTimeout(() => { splash.style.display = 'none'; }, 900);
+  }, 2600);
+}
+
+// ── INIT ──
+buildHomeWines();
+buildWineList();
+</script>
+</body>
+</html>
